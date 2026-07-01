@@ -1,0 +1,68 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write # required to update the "latest" tag and release
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          lfs: true # only matters if assets/*.gz are stored via Git LFS
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      # lxn/walk and lxn/win are Windows-only, so vet must target Windows too.
+      - name: Vet
+        env:
+          GOOS: windows
+          GOARCH: amd64
+        run: go vet ./...
+
+      # mkmanifest is portable Go and runs natively on the runner to make the .syso.
+      - name: Generate resources (manifest + icon)
+        run: go run ./cmd/mkmanifest srtextractor.exe.manifest icon.png rsrc_windows_amd64.syso
+
+      - name: Build (Windows x64)
+        env:
+          CGO_ENABLED: "0"
+          GOOS: windows
+          GOARCH: amd64
+        run: go build -trimpath -ldflags "-H windowsgui -s -w" -o SrtExtractor.exe .
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SrtExtractor-windows-amd64
+          path: SrtExtractor.exe
+
+      # One rolling release: move the "latest" tag to this commit...
+      - name: Move "latest" tag
+        if: github.ref == 'refs/heads/main'
+        run: |
+          git tag -f latest
+          git push -f origin latest
+
+      # ...then update the single "Latest" release, replacing the binary so only
+      # the newest SrtExtractor.exe is ever available.
+      - name: Publish "latest" release
+        if: github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: Latest build
+          prerelease: false
+          files: SrtExtractor.exe

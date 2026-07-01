@@ -1,0 +1,32 @@
+SRT Extractor — bundled ffmpeg integrity
+=========================================
+
+The ffmpeg / ffprobe shipped with this program are the UNMODIFIED official
+Windows builds from gyan.dev. They are NOT rebuilt, patched, or repackaged —
+only gzip-compressed for embedding. Verify with the SHA-256 hashes below.
+
+Build:   ffmpeg 8.1.2-essentials_build-www.gyan.dev
+License: GPL v3  (configured --enable-gpl --enable-version3, incl. libx264/libx265)
+Source:  https://www.gyan.dev/ffmpeg/builds/   (ffmpeg-release-essentials, 8.1.2)
+
+SHA-256 — extracted executables (what actually runs)
+----------------------------------------------------
+ffmpeg.exe    1326DDE4C84FF1F96FE6B8916C5BED29E163E9B5DCCF995F6F3DB069D143EC5E
+ffprobe.exe   B49CCC7C6547B141AD5A2F6EC69CC04323D7133D7704D70B331B904C63EECB07
+
+SHA-256 — repository assets (gzip-compressed, as embedded)
+----------------------------------------------------------
+assets/ffmpeg.exe.gz    72D93DF0CFD84C08CE0C917705CCE468CD7769924FDEC79E177890498EA0ED11
+assets/ffprobe.exe.gz   C518593E5D9B34E6A46FBE9AD08F9E6270786D13E5F8BDC7436E7C529ECCBC0B
+
+How to verify
+-------------
+Windows (PowerShell):   Get-FileHash <file> -Algorithm SHA256
+Linux / macOS:          sha256sum <file>
+
+1. Run the program once — it unpacks ffmpeg to %TEMP%\srtextractor-<hash>\ —
+   OR gunzip the files in assets/.
+2. Hash ffmpeg.exe / ffprobe.exe and compare with the values above.
+3. For a fully independent check, download the same version from gyan.dev,
+   extract it, and confirm the hash matches. It will, because these are the
+   same original binaries — nothing here was modified.
